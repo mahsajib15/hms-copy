@@ -87,6 +87,15 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="w-10 h-10 rounded-full cursor-pointer flex items-center justify-center border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 hover:scale-105 transition"
+              aria-label="Toggle theme"
+            >
+              {theme === "light" ? "🌞" : "🌙"}
+            </button>
+
             {/* Login Button or Profile Avatar */}
             {!token || !user ? (
               <Link
@@ -133,15 +142,6 @@ export default function Navbar() {
                 </DialogContent>
               </Dialog>
             )}
-
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 hover:scale-105 transition"
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? "🌞" : "🌙"}
-            </button>
           </div>
         </div>
       </div>

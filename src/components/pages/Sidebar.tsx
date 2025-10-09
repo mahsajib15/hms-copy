@@ -2,12 +2,25 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Home, User, Settings } from "lucide-react";
+import {
+  Menu,
+  X,
+  Home,
+  User,
+  Settings,
+  Store,
+  ChevronDown,
+  ChevronUp,
+  CalendarArrowDown,
+} from "lucide-react";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const [isStoreOpen, setIsStoreOpen] = useState(false);
+  const toggleStoreMenu = () => setIsStoreOpen(!isStoreOpen);
 
   return (
     <>
@@ -25,7 +38,6 @@ export default function Sidebar() {
         ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         <div className="flex flex-col h-full">
-
           {/* Menu */}
           <nav className="flex-1 p-4 space-y-2">
             <Link
@@ -35,6 +47,38 @@ export default function Sidebar() {
               <Home size={20} />
               <span>Rooms</span>
             </Link>
+            {/* <Link
+              href="/store"
+              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            >
+              <Store size={20} />
+              <span>Store</span>
+            </Link> */}
+
+            <div className="relative">
+              <button
+                onClick={toggleStoreMenu}
+                className="flex items-center justify-between w-full gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              >
+                <Link href="/store" className="flex items-center gap-3">
+                  <Store size={20} />
+                  <span>Store</span>
+                </Link>
+                {isStoreOpen ? <ChevronUp className="cursor-pointer" size={20} /> : <ChevronDown className="cursor-pointer" size={20} />}
+              </button>
+              {isStoreOpen && (
+                <div className="mt-1 space-y-1">
+                  <Link
+                    href="store/order"
+                    className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  >
+                    <CalendarArrowDown />
+                    <span>Order</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
             <Link
               href="/profile"
               className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
