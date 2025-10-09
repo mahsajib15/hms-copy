@@ -67,7 +67,7 @@ export default function Sidebar() {
                 {isStoreOpen ? <ChevronUp className="cursor-pointer" size={20} /> : <ChevronDown className="cursor-pointer" size={20} />}
               </button>
               {isStoreOpen && (
-                <div className="mt-1 space-y-1">
+                <div className="mt-1 ml-8 space-y-1">
                   <Link
                     href="store/order"
                     className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"

@@ -19,6 +19,14 @@ export interface Order {
   paymentStatus: string;
   deliveryAddress?: string;
   phoneNumber?: string;
+  customer?: {
+    name: string;
+    phone_number: string;
+  };
+  created_by?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface OrdersResponse {
@@ -33,16 +41,31 @@ interface OrdersResponse {
   success: boolean;
 }
 
-export const useOrders = (page = 1, limit = 8) => {
+export const useOrders = (
+  page = 1,
+  limit = 8,
+  searchConsignmentId = "",
+  searchCustomer = "",
+  sortBy = "createdAt"
+) => {
   const token = useAuthStore((state) => state.token);
   return useQuery<OrdersResponse, Error>({
-    queryKey: ["orders", token, page, limit],
+    queryKey: ["orders", token, page, limit, searchConsignmentId, searchCustomer, sortBy],
     queryFn: async () => {
       if (!token) throw new Error("Not authenticated");
+      const params = {
+        page,
+        limit,
+        sorts: sortBy,
+        ...(searchConsignmentId && { consignment_id: searchConsignmentId }),
+        ...(searchCustomer && { search: searchCustomer }),
+      };
+      console.log("sortBy:", sortBy);
+      console.log("API Params:", params);
       const response = await apiClient.get(
         `https://pos-api-dev.mohajon.app/api/v1/store/orders`,
         {
-          params: { page, limit, sorts: "" },
+          params,
           headers: {
             Authorization: `Bearer ${token}`,
           },

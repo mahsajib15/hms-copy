@@ -106,7 +106,7 @@ export default function LoginPage() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-md hover:from-blue-700 hover:to-purple-800 transition-all duration-200"
+                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-md hover:from-blue-700 hover:to-purple-800 transition-all duration-200"
                   disabled={mutation.isLoading || isSubmitting}
                 >
                   {mutation.isLoading ? (

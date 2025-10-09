@@ -19,9 +19,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (token && pathname === "/login") {
-      router.push("/rooms"); // Redirect to main app if logged in and on login page
+      router.push("/rooms");
     } else if (!token && pathname !== "/login") {
-      router.push("/login"); // Redirect to login if not logged in and not on login page
+      router.push("/login");
     }
   }, [token, pathname, router]);
 
