@@ -172,7 +172,7 @@ export default function OrderPage() {
       enableHiding: false,
       cell: ({ row }) => {
         const order = row.original;
-
+        console.log(order);
         return (
           <div className="flex items-center space-x-2">
             {order.status === "DUE" && (
