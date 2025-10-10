@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function OrderPage() {
   const [page, setPage] = useState(1);
@@ -97,11 +98,43 @@ export default function OrderPage() {
         }).format(amount);
         const status = row.original.paymentStatus === "PAID" ? "Received" : "Due";
         const statusColor = row.original.paymentStatus === "PAID" ? "text-green-600" : "text-red-600";
+
+        const billingDetails = row.original.billingDetails;
+
         return (
-          <div className="flex items-center space-x-1">
-            <DollarSign className={`h-4 w-4 ${statusColor}`} />
-            <span className={`font-medium ${statusColor}`}>{formatted} - {status}</span>
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <div className="flex items-center space-x-1 cursor-pointer">
+                <DollarSign className={`h-4 w-4 ${statusColor}`} />
+                <span className={`font-medium ${statusColor}`}>{formatted} - {status}</span>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4">
+              <div className="text-lg font-semibold mb-2">Order Billing Details</div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>Total</div>
+                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.total || 0)}</div>
+
+                <div>Received</div>
+                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.received || 0)}</div>
+
+                <div>Due</div>
+                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.due || 0)}</div>
+
+                <div>Discount Applied</div>
+                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.discountApplied || 0)}</div>
+
+                <div>Amount</div>
+                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.amount || 0)}</div>
+
+                <div>Receivable</div>
+                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.receivable || 0)}</div>
+
+                <div>Payment Method</div>
+                <div className="text-right">{billingDetails?.paymentMethod || "N/A"}</div>
+              </div>
+            </PopoverContent>
+          </Popover>
         );
       },
     },

@@ -27,6 +27,15 @@ export interface Order {
     id: number;
     name: string;
   };
+  billingDetails?: {
+    total: number;
+    received: number;
+    due: number;
+    discountApplied: number;
+    amount: number;
+    receivable: number;
+    paymentMethod: string;
+  };
 }
 
 interface OrdersResponse {
@@ -56,12 +65,12 @@ export const useOrders = (
       const params = {
         page,
         limit,
-        sorts: sortBy,
+        sorts: sortBy || "", // Ensure sorts is always sent
         ...(searchConsignmentId && { consignment_id: searchConsignmentId }),
         ...(searchCustomer && { search: searchCustomer }),
       };
-      console.log("sortBy:", sortBy);
-      console.log("API Params:", params);
+      console.log("sortBy (from useOrders):", sortBy);
+      console.log("API Params (from useOrders):", params);
       const response = await apiClient.get(
         `https://pos-api-dev.mohajon.app/api/v1/store/orders`,
         {
@@ -71,6 +80,7 @@ export const useOrders = (
           },
         }
       );
+      console.log("API Response (from useOrders):", response.data);
       
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch orders");
