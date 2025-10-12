@@ -31,11 +31,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function OrderPage() {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(8);
+  const [limit, setLimit] = useState(10);
   const [searchConsignmentId, setSearchConsignmentId] = useState("");
   const [searchCustomer, setSearchCustomer] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
@@ -64,8 +68,11 @@ export default function OrderPage() {
         <div className="flex flex-col">
           <div className="font-medium">{row.original.orderNumber}</div>
           <div className="text-sm text-gray-500">
-            {new Date(row.original.createdAt).toLocaleDateString()} {" "}
-            {new Date(row.original.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(row.original.createdAt).toLocaleDateString()}{" "}
+            {new Date(row.original.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </div>
         </div>
       ),
@@ -94,10 +101,14 @@ export default function OrderPage() {
         const amount = parseFloat(row.getValue("totalAmount"));
         const formatted = new Intl.NumberFormat("en-US", {
           style: "currency",
-          currency: "BDT", // Assuming BDT based on image
+          currency: "BDT",
         }).format(amount);
-        const status = row.original.paymentStatus === "PAID" ? "Received" : "Due";
-        const statusColor = row.original.paymentStatus === "PAID" ? "text-green-600" : "text-red-600";
+        const status =
+          row.original.paymentStatus === "PAID" ? "Received" : "Due";
+        const statusColor =
+          row.original.paymentStatus === "PAID"
+            ? "text-green-600"
+            : "text-red-600";
 
         const billingDetails = row.original.billingDetails;
 
@@ -106,32 +117,68 @@ export default function OrderPage() {
             <PopoverTrigger asChild>
               <div className="flex items-center space-x-1 cursor-pointer">
                 <DollarSign className={`h-4 w-4 ${statusColor}`} />
-                <span className={`font-medium ${statusColor}`}>{formatted} - {status}</span>
+                <span className={`font-medium ${statusColor}`}>
+                  {formatted} - {status}
+                </span>
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-4">
-              <div className="text-lg font-semibold mb-2">Order Billing Details</div>
+              <div className="text-lg font-semibold mb-2">
+                Order Billing Details
+              </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>Total</div>
-                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.total || 0)}</div>
+                <div className="text-right">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                  }).format(billingDetails?.total || 0)}
+                </div>
 
                 <div>Received</div>
-                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.received || 0)}</div>
+                <div className="text-right">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                  }).format(billingDetails?.received || 0)}
+                </div>
 
                 <div>Due</div>
-                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.due || 0)}</div>
+                <div className="text-right">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                  }).format(billingDetails?.due || 0)}
+                </div>
 
                 <div>Discount Applied</div>
-                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.discountApplied || 0)}</div>
+                <div className="text-right">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                  }).format(billingDetails?.discountApplied || 0)}
+                </div>
 
                 <div>Amount</div>
-                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.amount || 0)}</div>
+                <div className="text-right">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                  }).format(billingDetails?.amount || 0)}
+                </div>
 
                 <div>Receivable</div>
-                <div className="text-right">{new Intl.NumberFormat("en-US", { style: "currency", currency: "BDT" }).format(billingDetails?.receivable || 0)}</div>
+                <div className="text-right">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                  }).format(billingDetails?.receivable || 0)}
+                </div>
 
                 <div>Payment Method</div>
-                <div className="text-right">{billingDetails?.paymentMethod || "N/A"}</div>
+                <div className="text-right">
+                  {billingDetails?.paymentMethod || "N/A"}
+                </div>
               </div>
             </PopoverContent>
           </Popover>
@@ -143,9 +190,14 @@ export default function OrderPage() {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status");
-        const statusColor = status === "PAID" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+        const statusColor =
+          status === "PAID"
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800";
         return (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
+          >
             {String(status).toUpperCase()}
           </span>
         );
@@ -153,7 +205,18 @@ export default function OrderPage() {
     },
     {
       accessorKey: "created_by",
-      header: "Created By",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="flex justify-between w-full cursor-pointer"
+        >
+          Created By
+          <span>
+            <ArrowUpDown />
+          </span>
+        </Button>
+      ),
       cell: ({ row }) => {
         const createdBy = row.original.created_by;
         return (
@@ -176,7 +239,11 @@ export default function OrderPage() {
         return (
           <div className="flex items-center space-x-2">
             {order.status === "DUE" && (
-              <Button variant="outline" size="sm" className="text-red-600 border-red-600">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 border-red-600"
+              >
                 <DollarSign className="mr-2 h-4 w-4" /> Clear Due
               </Button>
             )}
@@ -193,7 +260,9 @@ export default function OrderPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(order.orderNumber)}
+                  onClick={() =>
+                    navigator.clipboard.writeText(order.orderNumber)
+                  }
                 >
                   Copy order ID
                 </DropdownMenuItem>
@@ -211,7 +280,7 @@ export default function OrderPage() {
   if (isLoading) return <div>Loading orders...</div>;
   if (isError) return <div>Error: {error?.message}</div>;
 
-  const totalPages = data?.data?.totalPages || 1;
+  const totalPages = data?.totalPages || 1;
 
   return (
     <div className="container mx-auto py-10">
@@ -242,24 +311,29 @@ export default function OrderPage() {
           <SelectContent>
             <SelectItem value="createdAt">Order Date</SelectItem>
             <SelectItem value="totalAmount">Total Amount</SelectItem>
-            {/* Add more sort options as needed */}
           </SelectContent>
         </Select>
       </div>
 
-      <DataTable columns={columns} data={data?.data?.orders || []} />
+      <DataTable columns={columns} data={data?.orders || []} />
       <Pagination className="mt-4">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              disabled={page === 1}
+              onClick={() => {
+                console.log("Previous button clicked");
+                setPage((prev) => Math.max(1, prev - 1));
+              }}
+              // disabled={page === 1}
             />
           </PaginationItem>
           {[...Array(totalPages)].map((_, i) => (
             <PaginationItem key={i}>
               <PaginationLink
-                onClick={() => setPage(i + 1)}
+                onClick={() => {
+                  console.log("Page number clicked:", i + 1);
+                  setPage(i + 1);
+                }}
                 isActive={page === i + 1}
               >
                 {i + 1}
@@ -268,8 +342,11 @@ export default function OrderPage() {
           ))}
           <PaginationItem>
             <PaginationNext
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={page === totalPages}
+              onClick={() => {
+                console.log("Next button clicked");
+                setPage((prev) => Math.min(totalPages, prev + 1));
+              }}
+              // disabled={page === totalPages}
             />
           </PaginationItem>
         </PaginationContent>

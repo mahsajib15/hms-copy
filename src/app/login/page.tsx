@@ -36,7 +36,7 @@ export default function LoginPage() {
       setCredentials({ token: data.access_token, user: data.session });
       toast.success("Login successful! Welcome back to  Mohajon");
       await delay(250);
-      router.push("/rooms");
+      router.push("/");
     },
     onError: (error: any) => {
       toast.error(

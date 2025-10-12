@@ -72,8 +72,8 @@ export default function Sidebar() {
                     href="/store/orders"
                     className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                   >
-                    <CalendarArrowDown />
-                    <span>Order</span>
+                    <CalendarArrowDown height={20} />
+                    <span className="text-sm">Order</span>
                   </Link>
                 </div>
               )}

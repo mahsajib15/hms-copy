@@ -38,21 +38,19 @@ export interface Order {
   };
 }
 
-interface OrdersResponse {
-  data: {
-    orders: Order[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+export interface OrdersResponse {
+  orders: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
   message: string;
   success: boolean;
 }
 
 export const useOrders = (
   page = 1,
-  limit = 8,
+  limit = 100,
   searchConsignmentId = "",
   searchCustomer = "",
   sortBy = "createdAt"
@@ -65,12 +63,10 @@ export const useOrders = (
       const params = {
         page,
         limit,
-        sorts: sortBy || "", // Ensure sorts is always sent
+        sorts: sortBy || "",
         ...(searchConsignmentId && { consignment_id: searchConsignmentId }),
         ...(searchCustomer && { search: searchCustomer }),
       };
-      console.log("sortBy (from useOrders):", sortBy);
-      console.log("API Params (from useOrders):", params);
       const response = await apiClient.get(
         `https://pos-api-dev.mohajon.app/api/v1/store/orders`,
         {
@@ -80,7 +76,6 @@ export const useOrders = (
           },
         }
       );
-      console.log("API Response (from useOrders):", response.data);
       
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch orders");

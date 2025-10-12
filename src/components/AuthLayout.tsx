@@ -19,7 +19,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (token && pathname === "/login") {
-      router.push("/rooms");
+      router.push("/");
     } else if (!token && pathname !== "/login") {
       router.push("/login");
     }
