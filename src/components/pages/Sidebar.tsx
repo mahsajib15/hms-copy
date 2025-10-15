@@ -16,6 +16,7 @@ import {
   PackageOpen,
   ClipboardMinus,
   ClipboardCheck,
+  Layers,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -76,6 +77,13 @@ export default function Sidebar() {
               </button>
               {isStoreOpen && (
                 <div className="mt-1 ml-8 space-y-1">
+                  <Link
+                    href="/store/pos"
+                    className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  >
+                    <Layers height={20} />
+                    <span className="text-sm">POS</span>
+                  </Link>
                   <Link
                     href="/store/orders"
                     className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
