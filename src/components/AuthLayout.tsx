@@ -53,7 +53,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-950 md:ml-64 md:mt-16">
+        <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-950 md:ml-52 md:mt-16">
           {children}
           <Toaster />
         </main>

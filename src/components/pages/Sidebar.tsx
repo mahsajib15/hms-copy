@@ -12,6 +12,10 @@ import {
   ChevronDown,
   ChevronUp,
   CalendarArrowDown,
+  Users,
+  PackageOpen,
+  ClipboardMinus,
+  ClipboardCheck,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -27,14 +31,14 @@ export default function Sidebar() {
       {/* Mobile Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-gray-200 dark:bg-gray-800"
+        className="md:hidden fixed top-4 z-50 p-2 rounded-md bg-gray-200 dark:bg-gray-800"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-md transform transition-transform duration-300 z-40
+        className={`fixed top-16 left-0 h-full w-52 bg-white dark:bg-gray-900 shadow-md transform transition-transform duration-300 z-40
         ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         <div className="flex flex-col h-full">
@@ -42,7 +46,7 @@ export default function Sidebar() {
           <nav className="flex-1 p-4 space-y-2">
             <Link
               href="/rooms"
-              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="flex items-center gap-3 px-4 py-2 rounded-md  font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >
               <Home size={20} />
               <span>Rooms</span>
@@ -58,13 +62,17 @@ export default function Sidebar() {
             <div className="relative">
               <button
                 onClick={toggleStoreMenu}
-                className="flex items-center justify-between w-full gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                className="flex items-center cursor-pointer justify-between w-full gap-3 px-4 py-2 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition"
               >
-                <Link href="/store" className="flex items-center gap-3">
+                <div className="flex items-center gap-3 cursor-pointer">
                   <Store size={20} />
                   <span>Store</span>
-                </Link>
-                {isStoreOpen ? <ChevronUp className="cursor-pointer" size={20} /> : <ChevronDown className="cursor-pointer" size={20} />}
+                </div>
+                {isStoreOpen ? (
+                  <ChevronUp size={20} />
+                ) : (
+                  <ChevronDown className="cursor-pointer" size={20} />
+                )}
               </button>
               {isStoreOpen && (
                 <div className="mt-1 ml-8 space-y-1">
@@ -73,7 +81,28 @@ export default function Sidebar() {
                     className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                   >
                     <CalendarArrowDown height={20} />
-                    <span className="text-sm">Order</span>
+                    <span className="text-sm">Orders</span>
+                  </Link>
+                  <Link
+                    href="/store/customers"
+                    className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  >
+                    <Users height={20} />
+                    <span className="text-sm">Customers</span>
+                  </Link>
+                  <Link
+                    href="/store/inventory"
+                    className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  >
+                    <PackageOpen height={20} />
+                    <span className="text-sm">Inventory</span>
+                  </Link>
+                  <Link
+                    href="/store/reports"
+                    className="flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  >
+                    <ClipboardCheck height={20} />
+                    <span className="text-sm">Reports</span>
                   </Link>
                 </div>
               )}
@@ -81,14 +110,14 @@ export default function Sidebar() {
 
             <Link
               href="/profile"
-              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="flex items-center gap-3 px-4 py-2 rounded-md  font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >
               <User size={20} />
               <span>Profile</span>
             </Link>
             <Link
               href="/settings"
-              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="flex items-center gap-3 px-4 py-2 rounded-md  font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >
               <Settings size={20} />
               <span>Settings</span>

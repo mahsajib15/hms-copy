@@ -1,10 +1,10 @@
-import RoomsPage from '@/components/pages/rooms/Rooms'
+import Customers from '@/components/pages/store/customers/Customers'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-      <RoomsPage />
+      <Customers />
     </div>
   )
 }

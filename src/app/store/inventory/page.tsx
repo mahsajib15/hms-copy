@@ -1,10 +1,10 @@
-import RoomsPage from '@/components/pages/rooms/Rooms'
+import Inventory from '@/components/pages/store/inventory/Inventory'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-      <RoomsPage />
+      <Inventory />
     </div>
   )
 }

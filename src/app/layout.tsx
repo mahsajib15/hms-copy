@@ -35,10 +35,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {/* Wrap all pages with AuthLayout */}
             <AuthLayout>{children}</AuthLayout>
-
-            {/* Toast notifications */}
             <Toaster position="bottom-right" richColors />
           </ThemeProvider>
         </Providers>

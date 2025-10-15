@@ -72,7 +72,6 @@ export default function Navbar() {
     <nav className="w-full fixed top-0 bg-white dark:bg-gray-900 shadow-md z-50">
       <div className="mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo / Brand */}
           <Link
             href="/"
             className="text-xl font-bold text-blue-600 dark:text-blue-400"
@@ -96,7 +95,6 @@ export default function Navbar() {
               {theme === "light" ? "🌞" : "🌙"}
             </button>
 
-            {/* Login Button or Profile Avatar */}
             {!token || !user ? (
               <Link
                 href="/login"

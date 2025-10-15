@@ -3,7 +3,7 @@ import { getAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 
 export const apiClient = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
+  baseURL: `/api/v1`,
 });
 
 apiClient.interceptors.request.use(
