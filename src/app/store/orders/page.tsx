@@ -40,54 +40,76 @@ import {
 export default function OrderPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [searchConsignmentId, setSearchConsignmentId] = useState("");
+  const [searchOrderUid, setSearchOrderUid] = useState("");
   const [searchCustomer, setSearchCustomer] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
 
   const { data, isLoading, isError, error } = useOrders(
     page,
     limit,
-    searchConsignmentId,
+    searchOrderUid,
     searchCustomer,
     sortBy
   );
 
   const columns: ColumnDef<Order>[] = [
     {
-      accessorKey: "orderNumber",
+      accessorKey: "order_uid",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Order
+          Order UID
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
         <div className="flex flex-col">
-          <div className="font-medium">{row.original.orderNumber}</div>
+          <div className="font-medium">{row.original.order_uid}</div>
           <div className="text-sm text-gray-500">
-            {new Date(row.original.createdAt).toLocaleDateString()}{" "}
+            {new Date(row.original.createdAt).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            })}{" "}
             {new Date(row.original.createdAt).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
+              hour12: true,
             })}
           </div>
         </div>
       ),
     },
     {
-      accessorKey: "customer",
-      header: "Customer",
+      accessorKey: "created_by",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex justify-between w-full cursor-pointer"
+        >
+          Created By
+          <span>
+            <ArrowUpDown />
+          </span>
+        </Button>
+      ),
       cell: ({ row }) => {
-        const customer = row.original.customer;
+        const createdBy = row.original.created_by;
         return (
-          <div>
-            {customer?.name || "Walk-in Customer"}
-            {customer?.phone_number && (
-              <div className="text-sm text-gray-500">
-                {customer.phone_number}
+          <div className="flex flex-col">
+            <div className="flex items-center space-x-2">
+              {/* Placeholder for avatar/icon */}
+              <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs">
+                {createdBy?.name ? createdBy.name[0] : "?"}
+              </div>
+              <span>{createdBy?.name || "N/A"} (You)</span>
+            </div>
+            {createdBy?.phone_number && (
+              <div className="text-sm text-gray-500 ml-8">
+                {createdBy.phone_number}
               </div>
             )}
           </div>
@@ -95,111 +117,43 @@ export default function OrderPage() {
       },
     },
     {
-      accessorKey: "totalAmount",
-      header: "Billing",
-      cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("totalAmount"));
-        const formatted = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "BDT",
-        }).format(amount);
-        const status =
-          row.original.paymentStatus === "PAID" ? "Received" : "Due";
-        const statusColor =
-          row.original.paymentStatus === "PAID"
-            ? "text-green-600"
-            : "text-red-600";
-
-        const billingDetails = row.original.billingDetails;
-
-        return (
-          <Popover>
-            <PopoverTrigger asChild>
-              <div className="flex items-center space-x-1 cursor-pointer">
-                <DollarSign className={`h-4 w-4 ${statusColor}`} />
-                <span className={`font-medium ${statusColor}`}>
-                  {formatted} - {status}
-                </span>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4">
-              <div className="text-lg font-semibold mb-2">
-                Order Billing Details
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>Total</div>
-                <div className="text-right">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                  }).format(billingDetails?.total || 0)}
-                </div>
-
-                <div>Received</div>
-                <div className="text-right">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                  }).format(billingDetails?.received || 0)}
-                </div>
-
-                <div>Due</div>
-                <div className="text-right">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                  }).format(billingDetails?.due || 0)}
-                </div>
-
-                <div>Discount Applied</div>
-                <div className="text-right">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                  }).format(billingDetails?.discountApplied || 0)}
-                </div>
-
-                <div>Amount</div>
-                <div className="text-right">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                  }).format(billingDetails?.amount || 0)}
-                </div>
-
-                <div>Receivable</div>
-                <div className="text-right">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                  }).format(billingDetails?.receivable || 0)}
-                </div>
-
-                <div>Payment Method</div>
-                <div className="text-right">
-                  {billingDetails?.paymentMethod || "N/A"}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        );
-      },
-    },
-    {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status");
-        const statusColor =
-          status === "PAID"
-            ? "bg-green-100 text-green-800"
-            : "bg-red-100 text-red-800";
+        const orderStatus = row.original.status;
+        const paymentStatus = row.original.paymentStatus;
+
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case "BILL CREATED":
+            case "PROCESSING":
+              return "text-orange-600";
+            case "COMPLETED":
+            case "PAID":
+              return "text-green-600";
+            case "CANCELLED":
+            case "DUE":
+              return "text-red-600";
+            default:
+              return "text-gray-600";
+          }
+        };
+
         return (
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
-          >
-            {String(status).toUpperCase()}
-          </span>
+          <div className="flex flex-col space-y-1">
+            <div className="flex items-center space-x-1">
+              <span className="font-medium">ORD:</span>
+              <span className={`font-medium ${getStatusColor(orderStatus)}`}>
+                {orderStatus}
+              </span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span className="font-medium">BILL:</span>
+              <span className={`font-medium ${getStatusColor(paymentStatus)}`}>
+                {paymentStatus}
+              </span>
+            </div>
+          </div>
         );
       },
     },
@@ -237,42 +191,79 @@ export default function OrderPage() {
         const order = row.original;
         console.log(order);
         return (
-          <div className="flex items-center space-x-2">
-            {order.status === "DUE" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 border-red-600"
-              >
-                <DollarSign className="mr-2 h-4 w-4" /> Clear Due
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm">
+                Download Bill
               </Button>
-            )}
-            <Button variant="outline" size="sm">
-              Print Receipt
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigator.clipboard.writeText(order.orderNumber)
-                  }
-                >
-                  Copy order ID
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>View customer</DropdownMenuItem>
-                <DropdownMenuItem>View order details</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              <Button variant="outline" size="sm">
+                Print Bill
+              </Button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm">
+                Create Bill Again
+              </Button>
+              <Button variant="outline" size="sm">
+                Complete Bill
+              </Button>
+              <Button variant="outline" size="sm" className="text-red-600">
+                Canceled
+              </Button>
+            </div>
           </div>
         );
+      },
+    },
+    {
+      accessorKey: "orderNumber",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Order
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <div className="font-medium">{row.original.orderNumber}</div>
+          <div className="text-sm text-gray-500">
+            {new Date(row.original.createdAt).toLocaleDateString()}{" "}
+            {new Date(row.original.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "table",
+      header: "Table",
+      cell: ({ row }) => {
+        const table = row.original.table;
+        return (
+          <div>
+            {table?.name && table?.number
+              ? `${table.name} - ${table.number}`
+              : "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "total_price",
+      header: "Total Price",
+      cell: ({ row }) => {
+        const amount = parseFloat(row.getValue("total_price"));
+        const formatted = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "BDT",
+        }).format(amount);
+
+        return <div className="font-medium">{formatted}</div>;
       },
     },
   ];
@@ -293,10 +284,10 @@ export default function OrderPage() {
 
       <div className="flex items-center space-x-2 mb-4">
         <Input
-          placeholder="Search by consignment ID"
+          placeholder="Search by Order UID"
           className="max-w-sm"
-          value={searchConsignmentId}
-          onChange={(e) => setSearchConsignmentId(e.target.value)}
+          value={searchOrderUid}
+          onChange={(e) => setSearchOrderUid(e.target.value)}
         />
         <Input
           placeholder="Search Customer"

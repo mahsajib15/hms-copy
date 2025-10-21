@@ -1,211 +1,237 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Plus, ShoppingCart, ArrowUpDown, Trash2 } from 'lucide-react';
+import { Search, Plus, ArrowUpDown, Trash2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useInventories } from "@/hooks/useInventories";
 import Image from 'next/image';
+import AddMenuItemForm from './AddMenuItemForm';
+import ConfirmOrderModal from './ConfirmOrderModal';
+
 
 const POS = () => {
-  const [activeTab, setActiveTab] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data, isLoading, isError } = useInventories(currentPage, 10);
+  const menuItems = data?.inventories || [];
+  const totalPages = Math.ceil((data?.total || 0) / 10);
 
-  const menuItems = [
-    {
-      id: '1',
-      name: 'Borhani glass',
-      category: 'Juice and Drinks Item',
-      price: 40.00,
-      image: '/file.svg',
-    },
-    {
-      id: '2',
-      name: 'Borhani 500 ml',
-      category: 'Juice and Drinks Item',
-      price: 100.00,
-      image: '/file.svg', 
-    },
-    {
-      id: '3',
-      name: 'Borhani 1 ltr',
-      category: 'Juice and Drinks Item',
-      price: 190.00,
-      image: '/file.svg', 
-    },
-    {
-      id: '4',
-      name: 'সাদা ভাত',
-      category: 'Vat Bhorta Bhaji Item',
-      price: 30.00,
-      image: '/file.svg', 
-    },
-    {
-      id: '5',
-      name: 'মাটন কাচ্চি BASMOTI',
-      category: 'Khichuri ebong Biriyani Item',
-      price: 300.00,
-      image: '/file.svg', 
-    },
-    {
-      id: '6',
-      name: 'TEHARI',
-      category: 'Khichuri ebong Biriyani Item',
-      price: 150.00,
-      image: '/file.svg',
-    },
-    {
-      id: '7',
-      name: 'Pani choto',
-      category: 'Juice and Drinks Item',
-      price: 20.00,
-      image: '/file.svg', 
-    },
-    {
-      id: '8',
-      name: 'কাপ দই',
-      category: 'Dessert Item',
-      price: 40.00,
-      image: '/file.svg',
-    },
-    {
-      id: '9',
-      name: 'মাটন লেগ রোস্ট',
-      category: 'Mangso Item',
-      price: 300.00,
-      image: '/file.svg', 
-    },
-    {
-      id: '10',
-      name: 'চিকেন জালি কাবাব',
-      category: 'Side Dish',
-      price: 40.00,
-      image: '/file.svg',
-    },
-  ];
+  const [currentOrder, setCurrentOrder] = useState<any[]>([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [isAddMenuFormOpen, setIsAddMenuFormOpen] = useState(false);
+  const [isConfirmOrderModalOpen, setIsConfirmOrderModalOpen] = useState(false);
+
+
+  useEffect(() => {
+    const newTotal = currentOrder.reduce(
+      (sum, item) => sum + item.unit_selling_price * item.quantity,
+      0
+    );
+    setTotalAmount(newTotal);
+  }, [currentOrder]);
+
+  const addToCart = (item: any) => {
+    setCurrentOrder((prevOrder) => {
+      const existingItem = prevOrder.find((orderItem) => orderItem.id === item.id);
+      if (existingItem) {
+        return prevOrder.map((orderItem) =>
+          orderItem.id === item.id
+            ? { ...orderItem, quantity: orderItem.quantity + 1 }
+            : orderItem
+        );
+      }
+      return [...prevOrder, { ...item, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (itemId: number, newQuantity: number) => {
+    setCurrentOrder((prevOrder) => {
+      if (newQuantity <= 0) {
+        return prevOrder.filter((item) => item.id !== itemId);
+      }
+      return prevOrder.map((item) =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+    });
+  };
+
+  const removeFromCart = (itemId: number) => {
+    setCurrentOrder((prevOrder) => prevOrder.filter((item) => item.id !== itemId));
+  };
 
   return (
-    <div className="flex h-full p-6">
-      <div className="flex-1">
-        <ScrollArea className="w-full rounded-md border mb-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full justify-start flex-wrap">
-              <TabsTrigger value="all" className="cursor-pointer">All Menus</TabsTrigger>
-              <TabsTrigger value="vat_bhorta_bhaji" className="cursor-pointer">Vat Bhorta Bhaji Item</TabsTrigger>
-              <TabsTrigger value="mangso" className="cursor-pointer">Mangso Item</TabsTrigger>
-              <TabsTrigger value="mach" className="cursor-pointer">Mach Item</TabsTrigger>
-              <TabsTrigger value="khichuri_biriyani" className="cursor-pointer">Khichuri ebong Biriyani Item</TabsTrigger>
-              <TabsTrigger value="sokaler_nasta" className="cursor-pointer">Sokaler Nasta Menu</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </ScrollArea>
-
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">All Menus</h2>
-          <div className="flex items-center space-x-2">
+    <div className="flex flex-col lg:flex-row h-full p-4 lg:p-6 gap-4 lg:gap-6">
+      {/* Left Panel */}
+      <div className="flex-1 flex flex-col w-full lg:w-auto">
+        <h2 className="text-2xl font-bold mb-5">All Items</h2>
+        <div className="flex items-center justify-between w-full mb-6">
+          <div className="flex justify-between w-full items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input placeholder="Search" className="pl-8" />
             </div>
-            <Button className="bg-green-600 hover:bg-green-700 text-white cursor-pointer">
-              <Plus className="mr-2 h-4 w-4" /> Add New Menu
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
+              <Plus className="mr-2 h-4 w-4" /> Add New Item
             </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {menuItems.map((item) => (
-            <Card key={item.id} className="flex flex-col cursor-pointer">
-              <CardContent className="p-0 relative">
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  width={200}
-                  height={150}
-                  className="w-full h-36 object-cover rounded-t-md"
-                />
-                <div className="absolute top-2 right-2 flex space-x-1">
-                  <Button variant="secondary" size="icon" className="h-6 w-6 cursor-pointer">
-                    <ArrowUpDown className="h-3 w-3" />
-                  </Button>
-                  <Button variant="destructive" size="icon" className="h-6 w-6 cursor-pointer">
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-              <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-lg font-semibold">{item.name}</CardTitle>
-                <p className="text-sm text-gray-500">{item.category}</p>
-              </CardHeader>
-              <CardFooter className="p-4 pt-0 flex items-center justify-between">
-                <span className="text-lg font-bold">৳{item.price.toFixed(2)}</span>
-                <Button size="icon" className="h-8 w-8 cursor-pointer">
-                  <Plus className="h-4 w-4" />
+          {isLoading ? (
+                <div>Loading items...</div>
+              ) : isError ? (
+                <div>Error loading items.</div>
+              ) : (
+                menuItems.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => addToCart(item)}
+                  >
+                    <CardContent className="p-4 flex flex-col items-center text-center">
+                      <Image
+                        src={item.product.image}
+                        alt={item.product.name}
+                        width={120}
+                        height={120}
+                        className="h-32 w-52 object-cover rounded-md mb-4"
+                      />
+                      <p className="text-xl uppercase font-semibold mb-1 truncate w-full">
+                        {item.product.name}
+                      </p>
+                      <div className="text-sm text-gray-700 mb-2 border p-3">
+                        <div className='flex justify-between gap-10 '>
+                          <p>Selling Price: <span className='font-bold'>৳{(item.unit_selling_price || 0).toFixed(2)}</span></p>
+                        <p>Unit Price: <span className='font-bold'>৳{(item.unit_price || 0).toFixed(2)}</span></p>
+                        </div>
+                        <div className='flex gap-10 justify-between'>
+                          <p>Quantity Left: <span className='font-bold'>{item.quantity_left}</span></p>
+                        <p>Unit Size: <span className='font-bold'>{item.unit_size}</span></p>
+                        </div>
+                        <p>Unit Title: <span className='font-bold'>{item.unit_title}</span></p>
+                      </div>
+                      <Button
+                        className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent card onClick from firing
+                          addToCart(item);
+                        }}
+                      >
+                        Add to Cart
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-center mt-4 space-x-2">
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              {[...Array(totalPages)].map((_, index) => (
+                <Button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  variant={currentPage === index + 1 ? "default" : "outline"}
+                >
+                  {index + 1}
                 </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+              ))}
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+
       </div>
 
-      <div className="w-96 border-l p-4">
+      {/* Right Panel - Order Summary */}
+      <div className="w-full lg:w-96 border-t lg:border-t-0 lg:border-l p-4 mt-6 lg:mt-0">
         <Card className="h-[calc(100vh-10rem)] flex flex-col">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Current Order</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-between">
-
-            <ScrollArea className="flex-1 pr-4">
+          <CardContent className="flex-1 flex flex-col">
+            <ScrollArea className="flex-1 pr-2">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Image src="/file.svg" alt="Borhani glass" width={40} height={40} className="rounded-md" />
-                    <div>
-                      <p className="font-medium">Borhani glass</p>
-                      <p className="text-sm text-gray-500">৳40.00 x 1</p>
+                {currentOrder.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={item.product.image}
+                        alt={item.product.name}
+                        width={40}
+                        height={40}
+                        className="rounded-md"
+                      />
+                      <div>
+                        <p className="font-medium">{item.product.name}</p>
+                        <p className="text-sm text-gray-500">
+                          ৳{(item.unit_selling_price || 0).toFixed(2)} x {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      >
+                        -
+                      </Button>
+                      <span>{item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      >
+                        +
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="icon" className="h-6 w-6 cursor-pointer">-</Button>
-                    <span>1</span>
-                    <Button variant="outline" size="icon" className="h-6 w-6 cursor-pointer">+</Button>
-                    <Button variant="destructive" size="icon" className="h-6 w-6 cursor-pointer">
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Image src="/file.svg" alt="Sada Bhat" width={40} height={40} className="rounded-md" />
-                    <div>
-                      <p className="font-medium">সাদা ভাত</p>
-                      <p className="text-sm text-gray-500">৳30.00 x 2</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="icon" className="h-6 w-6 cursor-pointer">-</Button>
-                    <span>2</span>
-                    <Button variant="outline" size="icon" className="h-6 w-6 cursor-pointer">+</Button>
-                    <Button variant="destructive" size="icon" className="h-6 w-6 cursor-pointer">
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
+                ))}
               </div>
             </ScrollArea>
           </CardContent>
-          <CardFooter className="flex flex-col p-4 border-t">
-            <div className="flex justify-between w-full text-lg font-semibold mb-4">
+          <CardFooter className="flex flex-col p-4 border-t gap-4">
+            <div className="flex justify-between w-full text-lg font-semibold">
               <span>Total:</span>
-              <span>৳70.00</span>
+              <span>৳{totalAmount.toFixed(2)}</span>
             </div>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => setIsConfirmOrderModalOpen(true)}
+            >
               Order Now
             </Button>
           </CardFooter>
         </Card>
       </div>
+      <AddMenuItemForm isOpen={isAddMenuFormOpen} onClose={() => setIsAddMenuFormOpen(false)} />
+      <ConfirmOrderModal
+        isOpen={isConfirmOrderModalOpen}
+        onClose={() => setIsConfirmOrderModalOpen(false)}
+        currentOrder={currentOrder}
+        totalAmount={totalAmount}
+      />
     </div>
   );
 };

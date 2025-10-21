@@ -1,29 +1,52 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import Navbar from "@/components/pages/Navbar";
 import Sidebar from "@/components/pages/Sidebar";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
-  const { token } = useAuthStore();
+  const { token, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
+    if (!_hasHydrated) {
+      return;
+    }
+
+    let needsRedirect = false;
     if (token && pathname === "/login") {
       router.push("/");
+      needsRedirect = true;
     } else if (!token && pathname !== "/login") {
       router.push("/login");
+      needsRedirect = true;
     }
-  }, [token, pathname, router]);
+
+    setIsRedirecting(needsRedirect);
+
+    return () => {
+      setIsRedirecting(false);
+    };
+  }, [token, pathname, router, _hasHydrated]);
+
+  if (!_hasHydrated || isRedirecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner fontSize="lg" />
+      </div>
+    );
+  }
 
   if (pathname === "/login") {
     return (
@@ -39,9 +62,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     );
   }
 
-  if (!token) {
-    return null;
-  }
 
   return (
     <ThemeProvider

@@ -5,9 +5,11 @@ import { apiClient } from "@/lib/apiClient";
 
 export interface Order {
   id: number;
+  order_uid: string;
   orderNumber: string;
   customerName: string;
   totalAmount: number;
+  total_price: number;
   status: "pending" | "completed" | "cancelled" | string;
   createdAt: string;
   items: Array<{
@@ -26,6 +28,11 @@ export interface Order {
   created_by?: {
     id: number;
     name: string;
+    phone_number: string;
+  };
+  table?: {
+    name: string;
+    number: number;
   };
   billingDetails?: {
     total: number;
@@ -51,20 +58,20 @@ export interface OrdersResponse {
 export const useOrders = (
   page = 1,
   limit = 100,
-  searchConsignmentId = "",
+  searchOrderUid = "",
   searchCustomer = "",
   sortBy = "createdAt"
 ) => {
   const token = useAuthStore((state) => state.token);
   return useQuery<OrdersResponse, Error>({
-    queryKey: ["orders", token, page, limit, searchConsignmentId, searchCustomer, sortBy],
+    queryKey: ["orders", token, page, limit, searchOrderUid, searchCustomer, sortBy],
     queryFn: async () => {
       if (!token) throw new Error("Not authenticated");
       const params = {
         page,
         limit,
         sorts: sortBy || "",
-        ...(searchConsignmentId && { consignment_id: searchConsignmentId }),
+        ...(searchOrderUid && { order_uid: searchOrderUid }),
         ...(searchCustomer && { search: searchCustomer }),
       };
       const response = await apiClient.get(
