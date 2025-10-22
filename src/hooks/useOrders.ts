@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/apiClient";
 export interface Order {
   id: number;
   order_uid: string;
+  consignment_id: string;
   orderNumber: string;
   customerName: string;
   totalAmount: number;
@@ -57,10 +58,10 @@ export interface OrdersResponse {
 
 export const useOrders = (
   page = 1,
-  limit = 100,
+  limit = 10,
   searchOrderUid = "",
   searchCustomer = "",
-  sortBy = "createdAt"
+  sortBy = "created_at"
 ) => {
   const token = useAuthStore((state) => state.token);
   return useQuery<OrdersResponse, Error>({

@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Copy, DollarSign, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpDown,
+  Copy,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useOrders, Order } from "@/hooks/useOrders";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationLink,
-  PaginationNext,
-} from "@/components/ui/pagination";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,18 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 export default function OrderPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [searchOrderUid, setSearchOrderUid] = useState("");
   const [searchCustomer, setSearchCustomer] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortBy, setSortBy] = useState("created_at");
 
   const { data, isLoading, isError, error } = useOrders(
     page,
@@ -60,58 +54,90 @@ export default function OrderPage() {
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Order UID
+          Order
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="flex flex-col">
-          <div className="font-medium">{row.original.order_uid}</div>
-          <div className="text-sm text-gray-500">
-            {new Date(row.original.createdAt).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "2-digit",
-            })}{" "}
-            {new Date(row.original.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}
+      cell: ({ row }) => {
+        const orderDate = new Date(row.original.created_at);
+        const isValidDate = !isNaN(orderDate.getTime());
+
+        const handleCopy = async () => {
+          try {
+            await navigator.clipboard.writeText(row.original.consignment_id);
+            toast.success(`Copied: ${row.original.consignment_id}`, {
+              duration: 2000,
+            });
+          } catch {
+            toast.error("Failed to copy order ID.");
+          }
+        };
+
+        return (
+          <div className="flex items-center gap-3">
+            <Copy
+              size={20}
+              className="cursor-pointer text-gray-600 hover:text-green-600 transition-colors"
+              onClick={handleCopy}
+              title="Copy Order ID"
+            />
+            <div className="flex flex-col">
+              <div className="font-medium">{row.original.consignment_id}</div>
+              <div className="text-sm text-gray-500">
+                {isValidDate
+                  ? `${orderDate.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })} ${orderDate.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}`
+                  : "Invalid Date"}
+              </div>
+            </div>
           </div>
-        </div>
+        );
+      },
+    },
+    {
+      accessorKey: "customer",
+      header: "Customer",
+      cell: ({ row }) => {
+        const customer = row.original.customer;
+        return (
+          <div className="flex flex-col">
+            <div className="font-medium">
+              {customer?.name ||
+                row.original.customerName ||
+                "Walk-in Customer"}
+            </div>
+            {customer?.phone_number && (
+              <div className="text-sm text-gray-500">
+                {customer.phone_number}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "returnedQuantity",
+      header: "Returned",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.returnedQuantity || 0}</div>
       ),
     },
     {
-      accessorKey: "created_by",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="flex justify-between w-full cursor-pointer"
-        >
-          Created By
-          <span>
-            <ArrowUpDown />
-          </span>
-        </Button>
-      ),
+      accessorKey: "billing",
+      header: "Billing",
       cell: ({ row }) => {
-        const createdBy = row.original.created_by;
+        const receivedAmount =
+          row.original.billingDetails?.received || row.original.received || 0;
         return (
-          <div className="flex flex-col">
-            <div className="flex items-center space-x-2">
-              {/* Placeholder for avatar/icon */}
-              <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs">
-                {createdBy?.name ? createdBy.name[0] : "?"}
-              </div>
-              <span>{createdBy?.name || "N/A"} (You)</span>
-            </div>
-            {createdBy?.phone_number && (
-              <div className="text-sm text-gray-500 ml-8">
-                {createdBy.phone_number}
-              </div>
-            )}
+          <div className="font-medium text-green-500">
+            ৳{receivedAmount.toFixed(2)} - Received
           </div>
         );
       },
@@ -121,11 +147,9 @@ export default function OrderPage() {
       header: "Status",
       cell: ({ row }) => {
         const orderStatus = row.original.status;
-        const paymentStatus = row.original.paymentStatus;
-
         const getStatusColor = (status: string) => {
           switch (status) {
-            case "BILL CREATED":
+            case "PENDING":
             case "PROCESSING":
               return "text-orange-600";
             case "COMPLETED":
@@ -140,42 +164,21 @@ export default function OrderPage() {
         };
 
         return (
-          <div className="flex flex-col space-y-1">
-            <div className="flex items-center space-x-1">
-              <span className="font-medium">ORD:</span>
-              <span className={`font-medium ${getStatusColor(orderStatus)}`}>
-                {orderStatus}
-              </span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="font-medium">BILL:</span>
-              <span className={`font-medium ${getStatusColor(paymentStatus)}`}>
-                {paymentStatus}
-              </span>
-            </div>
+          <div className="flex items-center space-x-1">
+            <span className={`font-medium ${getStatusColor(orderStatus)}`}>
+              {orderStatus}
+            </span>
           </div>
         );
       },
     },
     {
       accessorKey: "created_by",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="flex justify-between w-full cursor-pointer"
-        >
-          Created By
-          <span>
-            <ArrowUpDown />
-          </span>
-        </Button>
-      ),
+      header: "Created By",
       cell: ({ row }) => {
         const createdBy = row.original.created_by;
         return (
           <div className="flex items-center space-x-2">
-            {/* Placeholder for avatar/icon */}
             <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs">
               {createdBy?.name ? createdBy.name[0] : "?"}
             </div>
@@ -189,81 +192,37 @@ export default function OrderPage() {
       enableHiding: false,
       cell: ({ row }) => {
         const order = row.original;
-        console.log(order);
         return (
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                Download Bill
-              </Button>
-              <Button variant="outline" size="sm">
-                Print Bill
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                Create Bill Again
-              </Button>
-              <Button variant="outline" size="sm">
-                Complete Bill
-              </Button>
-              <Button variant="outline" size="sm" className="text-red-600">
-                Canceled
-              </Button>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              Print Receipt
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => {
+                    navigator.clipboard.writeText(order.consignment_id);
+                    toast.success(
+                      `Order ID ${order.consignment_id} copied successfully.`
+                    );
+                  }}
+                >
+                  Copy Order ID
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>View Customer</DropdownMenuItem>
+                <DropdownMenuItem>View Order Details</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         );
-      },
-    },
-    {
-      accessorKey: "orderNumber",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Order
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="flex flex-col">
-          <div className="font-medium">{row.original.orderNumber}</div>
-          <div className="text-sm text-gray-500">
-            {new Date(row.original.createdAt).toLocaleDateString()}{" "}
-            {new Date(row.original.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "table",
-      header: "Table",
-      cell: ({ row }) => {
-        const table = row.original.table;
-        return (
-          <div>
-            {table?.name && table?.number
-              ? `${table.name} - ${table.number}`
-              : "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "total_price",
-      header: "Total Price",
-      cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("total_price"));
-        const formatted = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "BDT",
-        }).format(amount);
-
-        return <div className="font-medium">{formatted}</div>;
       },
     },
   ];
@@ -295,53 +254,68 @@ export default function OrderPage() {
           value={searchCustomer}
           onChange={(e) => setSearchCustomer(e.target.value)}
         />
+        <Select
+          onValueChange={(value) => setLimit(Number(value))}
+          value={limit.toString()}
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Items per page" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="8">8</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+          </SelectContent>
+        </Select>
         <Select onValueChange={setSortBy} value={sortBy}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort By" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="createdAt">Order Date</SelectItem>
-            <SelectItem value="totalAmount">Total Amount</SelectItem>
+            <SelectItem value="created_at">Order Date</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <DataTable columns={columns} data={data?.orders || []} />
-      <Pagination className="mt-4">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => {
-                console.log("Previous button clicked");
-                setPage((prev) => Math.max(1, prev - 1));
-              }}
-              // disabled={page === 1}
-            />
-          </PaginationItem>
-          {[...Array(totalPages)].map((_, i) => (
-            <PaginationItem key={i}>
-              <PaginationLink
-                onClick={() => {
-                  console.log("Page number clicked:", i + 1);
-                  setPage(i + 1);
-                }}
-                isActive={page === i + 1}
-              >
-                {i + 1}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => {
-                console.log("Next button clicked");
-                setPage((prev) => Math.min(totalPages, prev + 1));
-              }}
-              // disabled={page === totalPages}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+
+      {/* Styled Pagination Section */}
+      <div className="flex items-center justify-center mt-8 space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+          disabled={page === 1}
+          className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+
+        {[...Array(totalPages)].map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setPage(i + 1)}
+            className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+              page === i + 1
+                ? "bg-green-600 text-white"
+                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            {i + 1}
+          </button>
+        ))}
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+          disabled={page === totalPages}
+          className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 }

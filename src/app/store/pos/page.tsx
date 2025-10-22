@@ -1,10 +1,12 @@
-import POS from '@/components/pages/store/pos/POS'
-import React from 'react'
+"use client"
+
+import POS from '@/components/pages/store/pos/POS';
+import React from 'react';
 
 const page = () => {
   return (
     <div>
-      <POS />
+      <POS/>
     </div>
   )
 }
