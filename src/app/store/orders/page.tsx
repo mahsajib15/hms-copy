@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useOrders, Order } from "@/hooks/useOrders";
@@ -32,18 +31,18 @@ import {
 } from "@/components/ui/select";
 
 export default function OrderPage() {
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [searchOrderUid, setSearchOrderUid] = useState("");
-  const [searchCustomer, setSearchCustomer] = useState("");
-  const [sortBy, setSortBy] = useState("created_at");
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [limit, setLimit] = useQueryState('limit', parseAsInteger.withDefault(8));
+  const [searchOrderUid, setSearchOrderUid] = useQueryState('order_uid', parseAsString.withDefault(''));
+  const [searchCustomer, setSearchCustomer] = useQueryState('customer', parseAsString.withDefault(''));
+  const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('created_at'));
 
   const { data, isLoading, isError, error } = useOrders(
-    page,
-    limit,
-    searchOrderUid,
-    searchCustomer,
-    sortBy
+    Number(page),
+    Number(limit),
+    searchOrderUid || '',
+    searchCustomer || '',
+    sortBy || 'created_at'
   );
 
   const columns: ColumnDef<Order>[] = [
@@ -79,7 +78,7 @@ export default function OrderPage() {
               size={20}
               className="cursor-pointer text-gray-600 hover:text-green-600 transition-colors"
               onClick={handleCopy}
-              title="Copy Order ID"
+              aria-label="Copy Order ID"
             />
             <div className="flex flex-col">
               <div className="font-medium">{row.original.consignment_id}</div>
@@ -241,34 +240,32 @@ export default function OrderPage() {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2 mb-4">
+      <div className="flex justify-between items-center space-x-2 mb-4">
         <Input
           placeholder="Search by Order UID"
           className="max-w-sm"
           value={searchOrderUid}
-          onChange={(e) => setSearchOrderUid(e.target.value)}
+          onChange={async (e) => {
+            await setSearchOrderUid(e.target.value);
+            await setPage(1);
+          }}
         />
         <Input
           placeholder="Search Customer"
           className="max-w-sm"
           value={searchCustomer}
-          onChange={(e) => setSearchCustomer(e.target.value)}
+          onChange={async (e) => {
+            await setSearchCustomer(e.target.value);
+            await setPage(1);
+          }}
         />
-        <Select
-          onValueChange={(value) => setLimit(Number(value))}
-          value={limit.toString()}
+        <Select 
+          onValueChange={async (value) => {
+            await setSortBy(value);
+            await setPage(1);
+          }} 
+          value={sortBy}
         >
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Items per page" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="8">8</SelectItem>
-            <SelectItem value="10">10</SelectItem>
-            <SelectItem value="20">20</SelectItem>
-            <SelectItem value="50">50</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select onValueChange={setSortBy} value={sortBy}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort By" />
           </SelectTrigger>
@@ -280,41 +277,108 @@ export default function OrderPage() {
 
       <DataTable columns={columns} data={data?.orders || []} />
 
-      {/* Styled Pagination Section */}
-      <div className="flex items-center justify-center mt-8 space-x-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-          disabled={page === 1}
-          className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+      <div className="flex items-center justify-between mt-8 px-4">
+        <div className="text-sm text-gray-500">
+          Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data?.total || 0)} of {data?.total || 0} orders
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Items per page:</span>
+            <Select
+              onValueChange={async (value) => {
+                await setLimit(Number(value));
+                await setPage(1);
+              }}
+              value={limit.toString()}
+            >
+              <SelectTrigger className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="8">8</SelectItem>
+                <SelectItem value="16">16</SelectItem>
+                <SelectItem value="32">32</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {[...Array(totalPages)].map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-              page === i + 1
-                ? "bg-green-600 text-white"
-                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={async () => {
+                const newPage = Math.max(1, Number(page) - 1);
+                await setPage(newPage);
+              }}
+              disabled={Number(page) === 1}
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-          disabled={page === totalPages}
-          className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
+            <div className="flex items-center space-x-1">
+              {(() => {
+                const getPaginationItems = (currentPage: number, totalPages: number) => {
+                  const delta = 2;
+                  const range = [];
+                  const rangeWithDots = [];
+                  let lastItem: number | string | undefined;
+
+                  for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+                      range.push(i);
+                    }
+                  }
+
+                  for (let i of range) {
+                    if (lastItem) {
+                      if (typeof lastItem === 'number' && i - lastItem === 2) {
+                        rangeWithDots.push(lastItem + 1);
+                      } else if (typeof lastItem === 'number' && i - lastItem !== 1) {
+                        rangeWithDots.push("...");
+                      }
+                    }
+                    rangeWithDots.push(i);
+                    lastItem = i;
+                  }
+                  return rangeWithDots;
+                };
+
+                return getPaginationItems(Number(page), totalPages).map((item, index) => {
+                  if (item === "...") {
+                    return <span key={`ellipsis-${index}`}>...</span>;
+                  }
+                  const pageNum = item as number;
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={Number(page) === pageNum ? "default" : "outline"}
+                      className="h-8 w-8"
+                      onClick={async () => await setPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                });
+              })()}
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={async () => {
+                const newPage = Math.min(totalPages, Number(page) + 1);
+                await setPage(newPage);
+              }}
+              disabled={Number(page) === totalPages}
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

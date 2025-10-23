@@ -58,7 +58,7 @@ export interface OrdersResponse {
 
 export const useOrders = (
   page = 1,
-  limit = 10,
+  limit = 8,
   searchOrderUid = "",
   searchCustomer = "",
   sortBy = "created_at"
@@ -84,6 +84,8 @@ export const useOrders = (
           },
         }
       );
+      console.log("API Request Params:", params);
+      console.log("API Response Data:", response.data);
       
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch orders");
@@ -92,5 +94,8 @@ export const useOrders = (
       return response.data;
     },
     enabled: !!token,
+    keepPreviousData: true,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 };

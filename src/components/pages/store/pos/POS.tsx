@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 
 const POS = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, isError } = useInventories(currentPage, 10);
+  const { data, isLoading, isError } = useInventories(currentPage, 100);
   const menuItems = data?.inventories || [];
   const totalPages = Math.ceil((data?.total || 0) / 10);
   const router = useRouter();
@@ -36,18 +36,16 @@ const POS = () => {
 
   const handlePlaceOrder = async (orderDetails: any) => {
     console.log("Order Placed:", orderDetails);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
 
-    // Assuming the API call was successful
-    setIsConfirmOrderModalOpen(false); // Close the confirmation modal
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    setIsConfirmOrderModalOpen(false);
     setPlacedOrderDetails(orderDetails);
-    setIsOrderPlacedModalOpen(true); // Open the order placed modal
-    setCurrentOrder([]); // Clear the current order
+    setIsOrderPlacedModalOpen(true);
+    setCurrentOrder([]);
 
-    // Navigate to the orders page after a short delay to allow the modal to be seen
     setTimeout(() => {
-      router.push("/store/orders"); // Adjust this path to your actual orders page
+      router.push("/store/orders");
     }, 2000);
   };
 
