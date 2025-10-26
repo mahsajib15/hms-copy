@@ -28,7 +28,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  console.log("Data received by DataTable:", data);
+  // console.log("Data received by DataTable:", data);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
     data,

@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 
 export default function OrderPage() {
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [page, setPage] = useQueryState('s_order_page', parseAsInteger.withDefault(1));
   const [limit, setLimit] = useQueryState('limit', parseAsInteger.withDefault(8));
   const [searchOrderUid, setSearchOrderUid] = useQueryState('order_uid', parseAsString.withDefault(''));
   const [searchCustomer, setSearchCustomer] = useQueryState('customer', parseAsString.withDefault(''));
@@ -230,6 +230,7 @@ export default function OrderPage() {
   if (isError) return <div>Error: {error?.message}</div>;
 
   const totalPages = data?.totalPages || 1;
+  // console.log("Debug - totalPages:", totalPages, "totalItems:", data?.totalItems, "total:", data?.total, "limit:", limit);
 
   return (
     <div className="container mx-auto py-10">
@@ -279,7 +280,7 @@ export default function OrderPage() {
 
       <div className="flex items-center justify-between mt-8 px-4">
         <div className="text-sm text-gray-500">
-          Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data?.total || 0)} of {data?.total || 0} orders
+          Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data?.totalItems || data?.total || 0)} of {data?.totalItems || data?.total || 0} orders
         </div>
         
         <div className="flex items-center space-x-4">
@@ -346,7 +347,9 @@ export default function OrderPage() {
                   return rangeWithDots;
                 };
 
-                return getPaginationItems(Number(page), totalPages).map((item, index) => {
+                const paginationItems = getPaginationItems(Number(page), totalPages);
+                // console.log("Debug - pagination items:", paginationItems, "currentPage:", Number(page), "totalPages:", totalPages);
+                return paginationItems.map((item, index) => {
                   if (item === "...") {
                     return <span key={`ellipsis-${index}`}>...</span>;
                   }

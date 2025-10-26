@@ -48,7 +48,8 @@ export interface Order {
 
 export interface OrdersResponse {
   orders: Order[];
-  total: number;
+  total?: number;
+  totalItems?: number;
   page: number;
   limit: number;
   totalPages: number;
@@ -84,14 +85,29 @@ export const useOrders = (
           },
         }
       );
-      console.log("API Request Params:", params);
-      console.log("API Response Data:", response.data);
       
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch orders");
       }
       
-      return response.data;
+      const totalItemsCount = response.data.pagination.totalItems;
+      // console.log(totalItemsCount);
+
+      const calculatedTotalPages = Math.ceil(totalItemsCount / limit);
+      
+      // console.log("API Debug: totalItems-", response.data.pagination);
+      // console.log("total:", response.data.total);
+      // console.log("totalItemsCount:", totalItemsCount);
+      // console.log("limit:", limit);
+      // console.log("calculatedTotalPages:", calculatedTotalPages);
+      // console.log("original totalPages:", response.data.totalPages);
+
+      return {
+        ...response.data,
+        totalPages: calculatedTotalPages,
+        totalItems: totalItemsCount,
+        total: totalItemsCount
+      }
     },
     enabled: !!token,
     keepPreviousData: true,

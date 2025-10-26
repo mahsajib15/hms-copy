@@ -56,7 +56,6 @@ export const useInventories = (page = 1, limit = 10, product_type = "all") => {
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch inventories");
       }
-
       return response.data;
     },
     enabled: !!token,
