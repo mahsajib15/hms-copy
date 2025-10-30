@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiClient } from "@/lib/apiClient";
 
-export interface Customers {
+export interface Customer {
     name: string,
     id: number,
     email: string,
@@ -17,7 +17,7 @@ export interface Customers {
 }
 
 export interface CustomersResponse {
-    customers: Customers[];
+    customers: Customer[];
     total: number;
     totalItems: number;
     page: number;
