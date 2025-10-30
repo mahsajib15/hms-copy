@@ -1,6 +1,8 @@
+"use client";
+
 import { useOrders } from './useOrders';
 // import { Customers } from '@/components/pages/store/customers/Customers';
-"use client";
+
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
@@ -11,41 +13,52 @@ export interface Customer {
     id: number,
     email: string,
     phone_number: string,
-    customer_uid: string,
+    uid: string,
     created_at: string,
-    total: number,
 }
 
 export interface CustomersResponse {
     customers: Customer[];
-    total: number;
-    totalItems: number;
-    page: number;
-    totalPages: number;
-    limit: number;
+    pagination: {
+        total: number;
+        totalItems: number;
+        page: number;
+        totalPages: number;
+        limit: number;
+    };
     message: string;
     success: boolean;
 }
 
-export const useCustomers = (
+export const useCustomers = ({
     page = 1,
     limit = 8,
-    searchCustomerUid = "",
-    searchCustomer = "",
-    sortBy = "created_at"
-) => {
+    search,
+    sort = "created_at",
+    order = "asc",
+}: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sort?: string;
+    order?: "asc" | "desc";
+}) => {
     const token = useAuthStore((state) => state.token);
     return useQuery<CustomersResponse, Error>({
-        queryKey: ["customers", token, page, limit, sortBy],
+        queryKey: ["customers", token, page, limit, search, sort, order],
         queryFn: async () => {
             if (!token) throw new Error("Not authenticated");
-            const params = {
+            const params: { [key: string]: any } = {
                 page,
                 limit,
-                sorts: sortBy || "",
-                ...apiClient(searchCustomerUid && { customer_uid: searchCustomerUid }),
-                ...apiClient(searchCustomerUid && { search: searchCustomer }),
+                sorts: sort,
+                order,
             };
+
+            if (search) {
+                params.search = search;
+            }
+
             const response = await apiClient.get(
                 `https://pos-api-dev.mohajon.app/api/v1/store/customers`,
                 {
@@ -56,11 +69,11 @@ export const useCustomers = (
                 }
             );
             if (!response.data.success) {
-                throw new Error(response.data.message || "failed to fetch orders");
+                throw new Error(response.data.message || "failed to fetch customers");
             }
 
             const totalItemsCount = response.data.pagination.totalItems;
-            const calculatedTotalPages = Math.ceil(totalItemsCount / limit);
+            const calculatedTotalPages = response.data.pagination.totalPages;
             
             return {
                 ...response.data,
